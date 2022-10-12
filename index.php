@@ -7,7 +7,7 @@
  */
 
 session_start();
-define('VERSION', '3.3.1');
+define('VERSION', '3.3.4');
 mb_internal_encoding('UTF-8');
 
 if (defined('PHPUNIT_TESTING') === false) {
@@ -789,12 +789,14 @@ class Wcms
 		}
 
 		unset($selectedPage->{$slug}->{$fieldname});
+		$this->save();
 	}
 
 	/**
 	 * Delete existing page by slug
 	 *
 	 * @param array|null $slugTree
+	 * @throws Exception
 	 */
 	public function deletePageFromDb(array $slugTree = null): void
 	{
@@ -808,6 +810,7 @@ class Wcms
 		}
 
 		unset($selectedPage->{$slug});
+		$this->save();
 	}
 
 	/**
@@ -815,6 +818,7 @@ class Wcms
 	 *
 	 * @param array $slugTree
 	 * @param string $newSlugName
+	 * @throws Exception
 	 */
 	public function updatePageSlug(array $slugTree, string $newSlugName): void
 	{
@@ -948,7 +952,7 @@ EOT;
 		$this->deletePageFromDb($slugTree);
 
 		$allMenuItems = $selectedMenuItem = clone $this->get(self::DB_CONFIG, self::DB_MENU_ITEMS);
-		if (count(get_object_vars($allMenuItems)) === 1) {
+		if (count(get_object_vars($allMenuItems)) === 1 && count($slugTree) === 1) {
 			$this->alert('danger', 'Last page cannot be deleted - at least one page must exist.');
 			$this->redirect();
 		}
@@ -1052,7 +1056,11 @@ EOT;
 		$object = $this->db;
 
 		foreach ($args as $key => $arg) {
-			$object = $object->{$arg} ?? $this->set(...array_merge($args, [null]));
+			if (!property_exists($object, $arg)) {
+				$this->set(...array_merge($args, [new stdClass]));
+			}
+
+			$object = $object->{$arg};
 		}
 
 		return $object;
@@ -1275,6 +1283,10 @@ EOT;
 	{
 		$wcmsModules = trim($this->getFileFromRepo('wcms-modules.json', self::WCMS_CDN_REPO));
 		$jsonObject = json_decode($wcmsModules);
+		if (empty($jsonObject)) {
+			return;
+		}
+
 		$parsedCache = $this->moduleCacheMapper($jsonObject);
 		if (empty($parsedCache)) {
 			return;
@@ -1850,7 +1862,7 @@ EOT;
 		if (!in_array($content, [1, -1], true)) {
 			return;
 		}
-		$menuTree = $menu ? explode('-', $menu) : null;
+		$menuTree = explode('-', $menu);
 		$mainParentMenu = $selectedMenuKey = array_shift($menuTree);
 		$menuItems = $menuSelectionObject = clone $this->get(self::DB_CONFIG, self::DB_MENU_ITEMS);
 
@@ -2077,19 +2089,19 @@ EOT;
 		if (isset($_POST['fieldname'], $_POST['content'], $_POST['target'], $_POST['token'])
 			&& $this->hashVerify($_POST['token'])) {
 			[$fieldname, $content, $target, $menu, $visibility] = $this->hook('save', $_POST['fieldname'],
-				$_POST['content'], $_POST['target'], $_POST['menu'], ($_POST['visibility'] ?? 'hide'));
-			if ($target === 'menuItemUpdate') {
+				$_POST['content'], $_POST['target'], $_POST['menu'] ?? null, ($_POST['visibility'] ?? 'hide'));
+			if ($target === 'menuItemUpdate' && $menu !== null) {
 				$this->updateMenuItem($content, $menu, $visibility);
 				$_SESSION['redirect_to_name'] = $content;
 				$_SESSION['redirect_to'] = $this->slugify($content);
 			}
-			if ($target === 'menuItemCreate') {
+			if ($target === 'menuItemCreate' && $menu !== null) {
 				$this->createMenuItem($content, $menu, $visibility, true);
 			}
-			if ($target === 'menuItemVsbl') {
+			if ($target === 'menuItemVsbl' && $menu !== null) {
 				$this->updateMenuItemVisibility($visibility, $menu);
 			}
-			if ($target === 'menuItemOrder') {
+			if ($target === 'menuItemOrder' && $menu !== null) {
 				$this->orderMenuItem($content, $menu);
 			}
 			if ($fieldname === 'defaultPage' && $this->getPageData($content) === null) {
@@ -2151,7 +2163,7 @@ EOT;
 		<div id="save" class="loader-overlay"><h2><i class="animationLoader"></i><br />Saving</h2></div>
 		<div id="cache" class="loader-overlay"><h2><i class="animationLoader"></i><br />Checking for updates</h2></div>
 		<div id="adminPanel">
-			<a data-toggle="wcms-modal" class="wbtn wbtn-secondary wbtn-sm settings button" href="#settingsModal"><i class="settingsIcon"></i> Settings </a> <a href="' . self::url('logout&token=' . $this->getToken()) . '" class="wbtn wbtn-danger wbtn-sm button logout" title="Logout" onclick="return confirm(\'Log out?\')"><i class="logoutIcon"></i></a>
+			<a data-toggle="wcms-modal" class="wbtn wbtn-secondary wbtn-sm settings button" href="#settingsModal"><i class="settingsIcon"></i> Settings </a> <a href="' . self::url('logout?token=' . $this->getToken()) . '" class="wbtn wbtn-danger wbtn-sm button logout" title="Logout" onclick="return confirm(\'Log out?\')"><i class="logoutIcon"></i></a>
 			<div class="wcms-modal modal" id="settingsModal">
 				<div class="modal-dialog modal-xl">
 				 <div class="modal-content">
@@ -2679,6 +2691,7 @@ EOT;
 			'htm',
 			'html',
 			'ico',
+			'jpeg',
 			'jpg',
 			'kdbx',
 			'm4a',
@@ -2774,9 +2787,10 @@ EOT;
 			$showHttps = $securityCache['forceHttps'] ?? false;
 		}
 
+		$serverPort = ((($_SERVER['SERVER_PORT'] == '80') || ($_SERVER['SERVER_PORT'] == '443')) ? '' : ':' . $_SERVER['SERVER_PORT']);
 		return ($showHttps ? 'https' : 'http')
-			. '://' . $_SERVER['SERVER_NAME']
-			. ((($_SERVER['SERVER_PORT'] == '80') || ($_SERVER['SERVER_PORT'] == '443')) ? '' : ':' . $_SERVER['SERVER_PORT'])
+			. '://' . ($_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'])
+			. ($_SERVER['HTTP_HOST'] ? '' : $serverPort)
 			. ((dirname($_SERVER['SCRIPT_NAME']) === '/') ? '' : dirname($_SERVER['SCRIPT_NAME']))
 			. '/' . $location;
 	}
@@ -2870,7 +2884,12 @@ EOT;
 	 */
 	private function isHttpsForced(): bool
 	{
-		return $this->get('config', 'forceHttps') ?? false;
+		$value = $this->get('config', 'forceHttps');
+		if (gettype($value) === 'object' && empty(get_object_vars($value))) {
+			return false;
+		}
+
+		return $value ?? false;
 	}
 
 	/**
@@ -2879,6 +2898,11 @@ EOT;
 	 */
 	private function isSaveChangesPopupEnabled(): bool
 	{
-		return $this->get('config', 'saveChangesPopup') ?? false;
+		$value = $this->get('config', 'saveChangesPopup');
+		if (gettype($value) === 'object' && empty(get_object_vars($value))) {
+			return false;
+		}
+
+		return $value ?? false;
 	}
 }

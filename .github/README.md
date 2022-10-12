@@ -3,7 +3,7 @@
     <img src="https://github.com/robiso/wondercms-cdn-files/blob/master/logo.svg?raw=true" alt="WonderCMS logo" title="WonderCMS" align="center" height="150" />
 </a>
  <br>WonderCMS - Free Website Builder<br>
-    <sup>Smallest CMS (5 files • 40KB zip) - 1 step install</sup>
+    <sup>Smallest CMS (5 files • 48KB zip) - 1 step install</sup>
 </h1>
 
 <p align="center"><a href="https://github.com/robiso/wondercms/wiki#wondercms-documentation"><img src="https://camo.githubusercontent.com/45b2b4156eee6b315080fad3c417be62fb10b7d3/68747470733a2f2f696d672e736869656c64732e696f2f72656164746865646f63732f7069702f737461626c652e7376673f6c6f6e6743616368653d7472756526763d313030" alt="Docs" data-canonical-src="https://img.shields.io/readthedocs/pip/stable.svg?longCache=true&amp;v=100" style="max-width:100%;"></a>
@@ -28,7 +28,7 @@
 
 ## Small and simple flat file CMS
   - **No configuration needed - unzip and upload.**
-  - 5 files: [database.js](https://github.com/robiso/wondercms/wiki/Default-database.js#default-databasejs) (JSON format), [index.php](https://github.com/robiso/wondercms/blob/master/index.php), [theme.php](https://github.com/robiso/wondercms/blob/master/themes/default/theme.php), [style.css](https://github.com/robiso/wondercms/blob/master/themes/default/css/style.css) and [htaccess](https://github.com/robiso/wondercms/blob/master/.htaccess).
+  - 5 files: [database.js](https://github.com/robiso/wondercms/wiki/Default-database.js#default-databasejs) (JSON format), [index.php](https://github.com/robiso/wondercms/blob/master/index.php), [theme.php](https://github.com/robiso/wondercms/blob/master/themes/sky/theme.php), [style.css](https://github.com/robiso/wondercms/blob/master/themes/sky/css/style.css) and [htaccess](https://github.com/robiso/wondercms/blob/master/.htaccess).
     - Transferring your website to a new host/server is done by only copy/pasting all files (no additional configuration/migration)
  - Privacy oriented: no cookies, tracking or "powered by" links.
  - Includes plugins ([via hooks/listeners](https://github.com/robiso/wondercms/wiki/List-of-hooks)), [themes](https://github.com/robiso/wondercms/wiki/Create-theme-in-8-easy-steps)/plugins installer, [backups](https://github.com/robiso/wondercms/wiki/Backup-all-files), [1 click updates](https://github.com/robiso/wondercms/wiki/One-click-update).
@@ -176,11 +176,11 @@ Also listed on the official [WonderCMS website](https://www.wondercms.com/donors
 ## Links
 #### Website links
 - [Official website](https://www.wondercms.com)
-- [News/Changelog](https://www.wondercms.com/whatsnew)
+- [News/Changelog](https://www.wondercms.com/news)
 - [Donate](https://www.wondercms.com/donate)
 - [Get merch](https://www.wondercms.com/shop)
 - [Donors Hall of Fame](https://www.wondercms.com/donors)
-- [List of contributors](https://www.wondercms.com/special-contributors)
+- [List of contributors](https://www.wondercms.com/contributors)
 - [All WonderCMS related links](https://www.wondercms.com/links)
 
 
